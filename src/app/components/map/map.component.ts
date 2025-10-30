@@ -5,26 +5,12 @@ import * as L from 'leaflet';
 import { ReportService } from '../../services/report.service';
 import { Subscription } from 'rxjs';
 
-
+// ✅ Use asset paths (no PNG imports)
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'assets/leaflet/marker-icon-2x.png',
   iconUrl:       'assets/leaflet/marker-icon.png',
   shadowUrl:     'assets/leaflet/marker-shadow.png',
 });
-
-
-// Set up the default icon for ALL markers
-const DefaultIcon = L.icon({
-  iconRetinaUrl,
-  iconUrl,
-  shadowUrl,
-  iconSize:    [25, 41],
-  iconAnchor:  [12, 41],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  shadowSize:  [41, 41],
-});
-(L.Marker.prototype as any).options.icon = DefaultIcon;
 
 @Component({
   selector: 'app-map',
@@ -53,7 +39,6 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(this.map);
 
-    // In case the container size changes right after load
     setTimeout(() => this.map.invalidateSize(), 0);
 
     this.map.on('click', (e: L.LeafletMouseEvent) => {
