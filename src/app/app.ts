@@ -1,12 +1,19 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
+
+// ⬅️ Standalone components must be listed in `imports`
+import { MapComponent } from './components/map/map.component';
+import { ReportFormComponent } from './components/report-form/report-form.component';
+import { ReportListComponent } from './components/report-list/report-list.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  standalone: true,
+  imports: [CommonModule, HttpClientModule, MapComponent, ReportFormComponent, ReportListComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
-  protected readonly title = signal('homeless-reporter');
-}
+export class App {}
+
