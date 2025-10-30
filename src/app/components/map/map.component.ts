@@ -5,6 +5,27 @@ import * as L from 'leaflet';
 import { ReportService } from '../../services/report.service';
 import { Subscription } from 'rxjs';
 
+
+// app/components/map/map.component.ts
+
+// ⬇️ import Leaflet’s marker images so Vite/Angular bundles them
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+
+// Set up the default icon for ALL markers
+const DefaultIcon = L.icon({
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
+  iconSize:    [25, 41],
+  iconAnchor:  [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize:  [41, 41],
+});
+(L.Marker.prototype as any).options.icon = DefaultIcon;
+
 @Component({
   selector: 'app-map',
   standalone: true,
