@@ -15,8 +15,9 @@ import { ReportService } from '../../services/report.service';
 
       <!-- Static text above the form -->
       <p class="intro-text">
-        Kérjük, add meg a szükséges információkat az észlelt helyzetről.
-        Ez segít a segélyszervezeteknek gyorsabban reagálni.
+       💔 Télen is alszanak hajléktalan emberek az utcán.
+🙏 Ha lát egy hajléktalan embert , aki fázik vagy segítségre szorul, ne menjen el mellette.
+🫂 Írja meg nekünk, és segítünk, amilyen gyorsan csak tudunk. ❤️
       </p>
 
       <form (ngSubmit)="onSubmit()" #f="ngForm" class="form-fields">
