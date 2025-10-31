@@ -42,7 +42,7 @@ exports.handler = async (event) => {
 
   try {
     if (provider === 'resend') {
-      const key = process.env.RESEND_API_KEY;
+      const key = process.env.NETLIFY_EMAILS_PROVIDER_API_KEY;
       if (!key) throw new Error('RESEND_API_KEY missing');
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
