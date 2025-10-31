@@ -5,11 +5,12 @@ import * as L from 'leaflet';
 import { ReportService } from '../../services/report.service';
 import { Subscription } from 'rxjs';
 
+import { CoordsBus } from '../../services/coords-bus.service';
+
 // 📍 Debrecen coordinates
 const DEFAULT_LAT = 47.5316;
 const DEFAULT_LNG = 21.6273;
 
-// 🔴 Crimson marker using inline SVG
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="25" height="41" viewBox="0 0 25 41">
   <path fill="#9d1b31" d="M12.5 0C5.596 0 0 5.596 0 12.5c0 8.873 11.373 26.099 11.855 26.818a0.78.78 0 0 0 1.29 0C13.627 38.599 25 21.373 25 12.5 25 5.596 19.404 0 12.5 0z"/>
   <circle cx="12.5" cy="12.5" r="6.5" fill="#fff"/>
@@ -27,32 +28,42 @@ const crimsonIcon = L.icon({
   standalone: true,
   imports: [CommonModule],
   template: `<div #mapEl id="map"></div>`,
-  styles: [`
-    #map {
-      height: 420px;
-      width: 100%;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,.08);
-    }
 
-    /* 🔴 Popup theming to match crimson */
-    .leaflet-popup-content-wrapper {
-      background: #9d1b31;
-      color: #fff;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,.2);
-    }
+styles: [`
+  :host {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
 
-    .leaflet-popup-tip {
-      background: #9d1b31;
-    }
+  .map-root {
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+  }
 
-    .leaflet-popup-content a {
-      color: #fff;
-      font-weight: 600;
-      text-decoration: underline;
-    }
-  `]
+  .leaflet-container {
+    width: 100%;
+    height: 100%;
+  }
+
+  .leaflet-popup-content-wrapper {
+    background: #9d1b31;
+    color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  }
+
+  .leaflet-popup-tip {
+    background: #9d1b31;
+  }
+
+  .leaflet-popup-content a {
+    color: #fff;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+`]
 })
 export class MapComponent implements AfterViewInit, OnDestroy {
   @ViewChild('mapEl', { static: true }) mapEl!: ElementRef<HTMLDivElement>;
@@ -63,7 +74,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private markers: L.Marker[] = [];
   private sub?: Subscription;
 
-  constructor(private reports: ReportService) {}
+constructor(private reports: ReportService, private bus: CoordsBus) {}
 
   ngAfterViewInit() {
     this.map = L.map(this.mapEl.nativeElement).setView([DEFAULT_LAT, DEFAULT_LNG], 13);
@@ -74,6 +85,14 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
     // fix rendering on load
     setTimeout(() => this.map.invalidateSize(), 0);
+
+
+this.bus.coords$.subscribe(c => {
+  if (!c) return;
+  this.ensureMarker();
+  this.selectedMarker!.setLatLng([c.lat, c.lng]);
+  this.map.setView([c.lat, c.lng], Math.max(this.map.getZoom(), 13));
+});
 
     // click to drop or move the marker
     this.map.on('click', (e: L.LeafletMouseEvent) => {

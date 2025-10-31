@@ -1,15 +1,14 @@
 
 <h1>Krízishelyzetben észlelt hajléktalan emberek bejelentése</h1>
 
-<div class="grid">
-  <!-- Left column: form + list -->
-  <div class="col">
+<div class="wrapper">
+  <!-- Left side: form -->
+  <div class="box">
     <app-report-form #form></app-report-form>
-    <app-report-list></app-report-list>
   </div>
 
-  <!-- Right column: map (same crimson theme, centered on Debrecen) -->
-  <div class="col">
+  <!-- Right side: map -->
+  <div class="box">
     <app-map (coordsChange)="form.setCoords($event.lat, $event.lng)"></app-map>
   </div>
 </div>

@@ -11,7 +11,7 @@ import { ReportListComponent } from './components/report-list/report-list.compon
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, MapComponent, ReportFormComponent, ReportListComponent],
+  imports: [CommonModule, HttpClientModule, MapComponent, ReportFormComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

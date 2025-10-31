@@ -1,7 +1,9 @@
 
 @import "leaflet/dist/leaflet.css";
 
-/* (Optional) popup theming */
+
+html, body { height: 100%; margin: 0; }
+
 .leaflet-popup-content-wrapper{background:#1f3c88;color:#fff;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .leaflet-popup-tip{background:#1f3c88}
 .leaflet-popup-content b{font-weight:600;display:block;margin-bottom:4px}

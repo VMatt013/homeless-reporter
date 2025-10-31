@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReportService } from '../../services/report.service';
 
+import { CoordsBus } from '../../services/coords-bus.service';   // <-- add
+
 @Component({
   selector: 'app-report-form',
   standalone: true,
@@ -44,118 +46,73 @@ import { ReportService } from '../../services/report.service';
     </div>
   </div>
   `,
-  styles: [`
-    /* Container and card */
-    .form-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      padding: 1rem;
-    }
 
-    .card {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      width: 100%;
-      max-width: 500px;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 0.8rem;
-    }
+styles: [`
+  :host { display: block; height: 100%; }        /* fill the .box */
+  .form-container { height: 100%; }
 
-    /* Heading & text */
-    h2 {
-      text-align: center;
-      color: #9d1b31;
-      margin-bottom: 0.3rem;
-    }
+  .card {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.25rem;          /* inner breathing room, but no extra frame */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
 
-    .intro-text {
-      text-align: center;
-      color: #444;
-      font-size: 1rem;
-      line-height: 1.4;
-      margin: 0.5rem 0 1rem;
-    }
+  h2 {
+    text-align: center;
+    color: #9d1b31;
+    margin: 0 0 .5rem 0;
+  }
 
-    /* Form fields */
-    form.form-fields {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-    }
+  .intro-text {
+    color: #444;
+    margin: .25rem 0 1rem 0;
+    text-align: left;
+  }
 
-    input, textarea, button {
-      width: 100%;
-      font-size: 1rem;
-      border-radius: 8px;
-      padding: 12px 14px;
-      border: 1px solid #ccc;
-      font-family: inherit;
-      box-sizing: border-box;
-      transition: 0.2s ease;
-    }
+  /* Fields fill remaining height; scroll if overflow */
+  form.form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+  }
 
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: #9d1b31;
-      box-shadow: 0 0 6px rgba(157,27,49,0.3);
-    }
+  input, textarea, button {
+    width: 100%;
+    font-size: 1rem;
+    border-radius: 8px;
+    padding: 12px 14px;
+    border: 1px solid #ccc;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: .2s ease;
+  }
+  input:focus, textarea:focus { outline: none; border-color: #9d1b31; box-shadow: 0 0 6px rgba(157,27,49,.3); }
+  textarea { min-height: 90px; resize: vertical; }
+  ::placeholder { color: #999; opacity: 1; }
 
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
+  button {
+    background: #9d1b31; color: #fff; border: none; cursor: pointer; font-weight: 600;
+    transition: background .2s ease, transform .1s ease;
+  }
+  button:hover { background: #7d1427; transform: translateY(-2px); }
+  button:disabled { background: #bbb; cursor: not-allowed; transform: none; }
 
-    ::placeholder {
-      color: #999;
-      opacity: 1;
-    }
-
-    /* Buttons */
-    button {
-      background: #9d1b31;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background 0.2s ease, transform 0.1s ease;
-    }
-
-    button:hover {
-      background: #7d1427;
-      transform: translateY(-2px);
-    }
-
-    button:disabled {
-      background: #bbb;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    @media (max-width: 600px) {
-      .card {
-        padding: 1.5rem;
-        max-width: 90%;
-      }
-
-      input, textarea, button {
-        font-size: 0.95rem;
-        padding: 10px 12px;
-      }
-
-      .intro-text {
-        font-size: 0.95rem;
-      }
-    }
-  `]
+  @media (max-width: 600px) {
+    .card { padding: 1rem; }
+  }
+`]
 })
 export class ReportFormComponent {
-  private svc = inject(ReportService);
+private svc = inject(ReportService);
+private bus = inject(CoordsBus);
 
   name = '';
   description = '';
@@ -177,19 +134,27 @@ export class ReportFormComponent {
     reader.readAsDataURL(file);
   }
 
-  useGeo() {
-    if (!navigator.geolocation) {
-      alert('A böngésződ nem támogatja a geolokációt.');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        this.lat.set(pos.coords.latitude);
-        this.lng.set(pos.coords.longitude);
-      },
-      err => alert('Nem sikerült lekérni a pozíciót: ' + err.message)
-    );
+
+useGeo() {
+  if (!navigator.geolocation) {
+    alert('A böngésződ nem támogatja a geolokációt.');
+    return;
   }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+
+      this.lat.set(lat);
+      this.lng.set(lng);
+
+      this.bus.set({ lat, lng });
+    },
+    err => alert('Nem sikerült lekérni a pozíciót: ' + err.message)
+  );
+}
+
 
   async onSubmit() {
     await this.svc.submit({
