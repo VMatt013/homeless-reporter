@@ -1,17 +1,5 @@
 
-const sgMail = require('@sendgrid/mail');
-
-
-// Prefer your own SENDGRID_API_KEY if present.
-// Otherwise reuse Netlify Emails' provider key when provider=sendgrid.
-const SENDGRID_KEY =
-  process.env.SENDGRID_API_KEY ||
-  (process.env.NETLIFY_EMAILS_PROVIDER === 'sendgrid' && process.env.NETLIFY_EMAILS_PROVIDER_API_KEY) ||
-  '';
-
-const FROM = process.env.REPORT_FROM || process.env.NETLIFY_EMAILS_FROM || '';
-const TO   = process.env.REPORT_TO   || process.env.NETLIFY_EMAILS_TO   || '';
-
+// netlify/functions/send-report.js
 const headersBase = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
@@ -25,34 +13,19 @@ exports.handler = async (event) => {
     return { statusCode: 405, headers: headersBase, body: JSON.stringify({ error: 'Method Not Allowed' }) };
 
   let data;
-  try {
-    data = JSON.parse(event.body || '{}');
-  } catch {
-    return { statusCode: 400, headers: headersBase, body: JSON.stringify({ error: 'Invalid JSON' }) };
-  }
+  try { data = JSON.parse(event.body || '{}'); }
+  catch { return { statusCode: 400, headers: headersBase, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
 
-  // Basic config checks
+  // From/To (works with either REPORT_* or NETLIFY_EMAILS_* you already had)
+  const FROM = process.env.REPORT_FROM || process.env.NETLIFY_EMAILS_FROM || '';
+  const TO   = process.env.REPORT_TO   || process.env.NETLIFY_EMAILS_TO   || '';
   if (!FROM || !TO) {
-    return {
-      statusCode: 500,
-      headers: headersBase,
-      body: JSON.stringify({ error: 'Email addresses missing (FROM/TO). Set REPORT_FROM/REPORT_TO or NETLIFY_EMAILS_FROM/TO.' }),
-    };
+    return { statusCode: 500, headers: headersBase, body: JSON.stringify({ error: 'Missing REPORT_FROM/REPORT_TO (or NETLIFY_EMAILS_FROM/TO)' }) };
   }
 
-  if (!SENDGRID_KEY) {
-    return {
-      statusCode: 500,
-      headers: headersBase,
-      body: JSON.stringify({ error: 'No SendGrid key found. Set SENDGRID_API_KEY or NETLIFY_EMAILS_PROVIDER=sendgrid and NETLIFY_EMAILS_PROVIDER_API_KEY.' }),
-    };
-  }
-
-  // Build email
   const { name, description, latitude, longitude, photo } = data;
   const subject = `Új bejelentés: ${name || 'Névtelen'}`;
-  const mapLink = (latitude && longitude)
-    ? `https://www.google.com/maps?q=${latitude},${longitude}` : '';
+  const mapLink = (latitude && longitude) ? `https://www.google.com/maps?q=${latitude},${longitude}` : '';
 
   const html = `
     <div style="font-family:Arial,Helvetica,sans-serif">
@@ -64,14 +37,33 @@ exports.handler = async (event) => {
     </div>
   `;
 
-  // Send via SendGrid REST (no SDK needed)
+  // Pick provider
+  const provider = (process.env.MAIL_PROVIDER || process.env.NETLIFY_EMAILS_PROVIDER || 'sendgrid').toLowerCase();
+
   try {
-    const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
+    if (provider === 'resend') {
+      const key = process.env.RESEND_API_KEY;
+      if (!key) throw new Error('RESEND_API_KEY missing');
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: FROM, to: TO, subject, html })
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(()=> '');
+        return { statusCode: 500, headers: headersBase, body: JSON.stringify({ error: 'Resend error', status: res.status, detail: text }) };
+      }
+      return { statusCode: 200, headers: headersBase, body: JSON.stringify({ ok: true }) };
+    }
+
+    // default: SendGrid (works with either SENDGRID_API_KEY or NETLIFY_EMAILS_PROVIDER_API_KEY when provider=sendgrid)
+    const sgKey = process.env.SENDGRID_API_KEY ||
+                  (process.env.NETLIFY_EMAILS_PROVIDER === 'sendgrid' && process.env.NETLIFY_EMAILS_PROVIDER_API_KEY) || '';
+    if (!sgKey) throw new Error('No SendGrid key found');
+
+    const sg = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${SENDGRID_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: `Bearer ${sgKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         personalizations: [{ to: [{ email: TO }] }],
         from: { email: FROM },
@@ -79,20 +71,13 @@ exports.handler = async (event) => {
         content: [{ type: 'text/html', value: html }],
       }),
     });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      // Return provider error text to the client so you can see the reason
-      return {
-        statusCode: 500,
-        headers: headersBase,
-        body: JSON.stringify({ error: 'SendGrid error', status: res.status, detail: text }),
-      };
+    if (!sg.ok) {
+      const text = await sg.text().catch(()=> '');
+      return { statusCode: 500, headers: headersBase, body: JSON.stringify({ error: 'SendGrid error', status: sg.status, detail: text }) };
     }
-
     return { statusCode: 200, headers: headersBase, body: JSON.stringify({ ok: true }) };
   } catch (err) {
-    return { statusCode: 500, headers: headersBase, body: JSON.stringify({ error: 'Network/Fetch error', detail: String(err) }) };
+    return { statusCode: 500, headers: headersBase, body: JSON.stringify({ error: 'Provider call failed', detail: String(err) }) };
   }
 };
 
