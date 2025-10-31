@@ -1,4 +1,9 @@
 
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Permissions-Policy = "geolocation=(self)"
+
 [build]
   command = "npm run build"
   publish = "dist/homeless-reporter/browser"

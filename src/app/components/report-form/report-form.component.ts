@@ -135,26 +135,62 @@ private bus = inject(CoordsBus);
   }
 
 
+
 useGeo() {
-  if (!navigator.geolocation) {
-    alert('A böngésződ nem támogatja a geolokációt.');
+  const explain = (msg: string) =>
+    alert(msg + '\n\nTipp:\n• Engedélyezd a helymeghatározást a böngészőben\n• HTTPS-en nyisd meg az oldalt (vagy localhost)\n• Kapcsold be az operációs rendszerben a helymeghatározást');
+
+  if (!('geolocation' in navigator)) {
+    explain('A böngésződ nem támogatja a geolokációt.');
     return;
   }
 
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
+  // Optional: permission preflight (Chrome/Edge/Firefox support)
+  // If 'denied', we can fail fast with a useful message.
+  (navigator as any).permissions?.query?.({ name: 'geolocation' as PermissionName })
+    .then((p: any) => {
+      if (p?.state === 'denied') {
+        explain('A helyhozzáférés le van tiltva ehhez a webhelyhez.');
+      }
+    })
+    .catch(() => { /* ignore if unsupported */ });
 
-      this.lat.set(lat);
-      this.lng.set(lng);
+  const getPos = (opts: PositionOptions) =>
+    new Promise<GeolocationPosition>((resolve, reject) =>
+      navigator.geolocation.getCurrentPosition(resolve, reject, opts)
+    );
 
-      this.bus.set({ lat, lng });
-    },
-    err => alert('Nem sikerült lekérni a pozíciót: ' + err.message)
-  );
+  const apply = (lat: number, lng: number) => {
+    this.lat.set(lat);
+    this.lng.set(lng);
+    // ✅ tell the map to move & center
+    (this as any).bus?.set?.({ lat, lng });
+  };
+
+  (async () => {
+    try {
+      // 1) quick attempt: allow cached result, modest timeout, no GPS requirement
+      const p1 = await getPos({ enableHighAccuracy: false, timeout: 8000, maximumAge: 120000 });
+      apply(p1.coords.latitude, p1.coords.longitude);
+      return;
+    } catch (e1: any) {
+      // 2) retry with high accuracy & longer timeout
+      try {
+        const p2 = await getPos({ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+        apply(p2.coords.latitude, p2.coords.longitude);
+        return;
+      } catch (e2: any) {
+        const err = e2 || e1;
+        let msg = 'Ismeretlen hiba történt a helyzet lekérésekor.';
+        // Standard codes: 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT
+        if (err?.code === 1) msg = 'A helyhozzáférés megtagadva ehhez a webhelyhez.';
+        else if (err?.code === 2) msg = 'A helyzet nem érhető el (nincs jel / szolgáltatás).';
+        else if (err?.code === 3) msg = 'Időtúllépés a helyzet meghatározásakor.';
+        explain(msg);
+      }
+    }
+  })();
 }
-
 
   async onSubmit() {
     await this.svc.submit({
