@@ -1,6 +1,7 @@
 
 const sgMail = require('@sendgrid/mail');
 
+
 exports.handler = async (event) => {
   const headers = {
     'Content-Type': 'application/json',
@@ -10,52 +11,54 @@ exports.handler = async (event) => {
   };
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers };
-  if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+  if (event.httpMethod !== 'POST')
+    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
 
   try {
     const data = JSON.parse(event.body || '{}');
-    const { SENDGRID_API_KEY, REPORT_TO, REPORT_FROM } = process.env;
 
-    if (!SENDGRID_API_KEY || !REPORT_TO || !REPORT_FROM) {
-      console.error('Missing email environment variables');
-      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Email config missing' }) };
+    // ✅ Use Netlify Emails API
+    const response = await fetch('https://api.netlify.com/api/v1/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.NETLIFY_EMAILS_SECRET}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: process.env.NETLIFY_EMAILS_FROM,
+        to: process.env.NETLIFY_EMAILS_TO,
+        subject: `Új bejelentés érkezett: ${data.name || 'Névtelen'}`,
+        parameters: {
+          name: data.name || 'N/A',
+          description: data.description || '',
+          location: `${data.latitude}, ${data.longitude}`,
+          mapLink: `https://www.google.com/maps?q=${data.latitude},${data.longitude}`,
+        },
+        // Optional: you can include a simple HTML body
+        html: `
+          <h2>Új bejelentés</h2>
+          <p><b>Név:</b> ${data.name || 'N/A'}</p>
+          <p><b>Leírás:</b><br>${data.description || ''}</p>
+          <p><b>Hely:</b> ${data.latitude}, ${data.longitude}</p>
+          <p><a href="https://www.google.com/maps?q=${data.latitude},${data.longitude}" target="_blank">Térképen megnyitás</a></p>
+        `
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Netlify Email error:', text);
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Failed to send email' }) };
     }
-
-    sgMail.setApiKey(SENDGRID_API_KEY);
-
-    const { name, description, latitude, longitude, photo } = data;
-    const subject = `Új bejelentés: ${name || 'Névtelen'}`;
-    const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-
-    const html = `
-      <h2>Új bejelentés érkezett</h2>
-      <p><b>Név:</b> ${name || 'N/A'}</p>
-      <p><b>Leírás:</b><br>${(description || '').replace(/\n/g, '<br>')}</p>
-      <p><b>Hely:</b> ${latitude}, ${longitude} — <a href="${mapLink}" target="_blank">Megnyitás térképen</a></p>
-      ${photo ? `<p><img src="data:image/*;base64,${photo}" style="max-width:480px;border-radius:8px"/></p>` : ''}
-    `;
-
-    const msg = {
-      to: REPORT_TO,
-      from: REPORT_FROM,
-      subject,
-      html,
-    };
-
-    await sgMail.send(msg);
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ ok: true, message: 'Email sent successfully' }),
+      body: JSON.stringify({ ok: true, message: 'Email sent successfully (via Netlify Emails)' }),
     };
-  } catch (error) {
-    console.error('Email send error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: 'Email send failed' }),
-    };
+  } catch (err) {
+    console.error('Error:', err);
+    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Unexpected error' }) };
   }
 };
 
