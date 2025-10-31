@@ -2,7 +2,7 @@
 import { Component, EventEmitter, OnDestroy, AfterViewInit, Output, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
-import { ReportService } from '../../services/report.service';
+import { ReportService, Report } from '../../services/report.service';
 import { Subscription } from 'rxjs';
 
 import { CoordsBus } from '../../services/coords-bus.service';
@@ -110,11 +110,14 @@ this.bus.coords$.subscribe(c => {
       this.coordsChange.emit({ lat, lng });
     });
 
-    // add existing reports
-    this.sub = this.reports.reports$.subscribe(list => {
-      this.markers.forEach(m => this.map.removeLayer(m));
-      this.markers = list.map(r => this.addReportMarker(r));
-    });
+
+this.sub = this.reports.reports$.subscribe((list: Report[]) => {
+  // remove old markers
+  this.markers.forEach(m => this.map.removeLayer(m));
+  // add typed markers
+  this.markers = list.map((r: Report) => this.addReportMarker(r));
+});
+
   }
 
 ngOnDestroy() {
@@ -132,10 +135,14 @@ ngOnDestroy() {
     }
   }
 
-  private addReportMarker(r: { latitude: number; longitude: number; name: string; description: string }) {
-    const url = `https://www.google.com/maps?q=${r.latitude},${r.longitude}`;
-    return L.marker([r.latitude, r.longitude], { icon: crimsonIcon }).addTo(this.map)
-      .bindPopup(`<b>${r.name}</b><br>${r.description}<br><a href="${url}" target="_blank">Megnyitás térképen</a>`);
-  }
+
+private addReportMarker(r: Report) {
+  const url = `https://www.google.com/maps?q=${r.latitude},${r.longitude}`;
+  return L.marker([r.latitude, r.longitude], { icon: crimsonIcon })
+    .addTo(this.map)
+    .bindPopup(`<b>${r.name}</b><br>${r.description}<br>
+      <a href="${url}" target="_blank">Megnyitás térképen</a>`);
+}
+
 }
 

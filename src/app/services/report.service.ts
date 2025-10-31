@@ -1,9 +1,9 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
 
-export interface ReportData {
+export interface Report {
   name: string;
   description: string;
   latitude: number;
@@ -13,25 +13,34 @@ export interface ReportData {
 
 @Injectable({ providedIn: 'root' })
 export class ReportService {
-  private readonly apiUrl = '/.netlify/functions/send-report'; // ✅ relative path
+  private readonly apiUrl = '/.netlify/functions/send-report';
+  private readonly storeKey = 'homeless-reporter.reports';
+
+  private _reports$ = new BehaviorSubject<Report[]>(this.load());
+  /** Stream of all reports (for MapComponent) */
+  readonly reports$ = this._reports$.asObservable();
 
   constructor(private http: HttpClient) {}
 
-  async submit(data: ReportData): Promise<any> {
+  /** Send to Netlify function and update local state */
+  async submit(report: Report): Promise<void> {
+    await firstValueFrom(this.http.post(this.apiUrl, report, { responseType: 'json' }));
+
+    const next = [report, ...this._reports$.value];
+    this._reports$.next(next);
+    this.save(next);
+  }
+
+  // ---- local storage helpers ----
+  private load(): Report[] {
     try {
-      const response = await firstValueFrom(
-        this.http.post(this.apiUrl, data, { responseType: 'json' })
-      );
-      console.log('Report sent successfully:', response);
-      return response;
-    } catch (error: any) {
-      console.error('Error sending report:', error);
-      alert(
-        'Nem sikerült elküldeni a bejelentést.\n' +
-          (error?.error?.error || error?.message || 'Ismeretlen hiba.')
-      );
-      throw error;
-    }
+      const raw = localStorage.getItem(this.storeKey);
+      return raw ? (JSON.parse(raw) as Report[]) : [];
+    } catch { return []; }
+  }
+
+  private save(list: Report[]) {
+    try { localStorage.setItem(this.storeKey, JSON.stringify(list)); } catch {}
   }
 }
 
