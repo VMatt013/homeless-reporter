@@ -50,3 +50,140 @@ h1 {
   .form-box { height: auto; }                  /* form can grow naturally */
   .map-box  { height: 55vh; min-height: 340px; } /* map always visible */
 }
+
+
+
+/* ===== ReFoMix full-width header ===== */
+.refomix-header {
+  width: 100%;
+  background: #fff;
+}
+
+/* top and bottom bars */
+.refomix-header .top-strip {
+  height: 4px;
+  background: #222;
+}
+.refomix-header .bottom-strip {
+  height: 8px;
+  background: #9d1b31;
+}
+
+/* main content row */
+.head-inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 40px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* logo block */
+.logo {
+  display: grid;
+  grid-template-columns: auto;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+.logo img {
+  width: 140px;
+  height: auto;
+  display: block;
+}
+.logo .tagline {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* middle org info */
+.org {
+  display: grid;
+  grid-template-columns: 8px 1fr;
+  align-items: start;
+  gap: 16px;
+}
+.org .bar {
+  width: 8px;
+  background: #bfbfbf;
+  border-radius: 2px;
+}
+.org-text {
+  display: grid;
+  gap: 2px;
+  font-size: 14px;
+  color: #222;
+}
+.org-text .title {
+  font-weight: 700;
+}
+.org-text a {
+  color: #222;
+  text-decoration: none;
+}
+.org-text a:hover {
+  text-decoration: underline;
+}
+.org-text .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.org-text .sep {
+  color: #222;
+}
+
+/* right CTA block */
+.cta {
+  display: grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 10px;
+  background: #9d1b31;
+  color: #fff;
+  padding: 14px 18px;
+  border-radius: 0 0 0 12px;
+  text-decoration: none;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15) inset;
+}
+.cta img {
+  width: 36px;
+  height: auto;
+  display: block;
+  opacity: 0.9;
+}
+.cta span {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.cta:hover {
+  filter: brightness(0.95);
+}
+
+/* responsive */
+@media (max-width: 900px) {
+  .head-inner {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    text-align: center;
+    padding: 12px 20px;
+  }
+  .org {
+    grid-template-columns: 1fr;
+  }
+  .org .bar {
+    display: none;
+  }
+  .cta {
+    border-radius: 8px;
+    justify-content: center;
+  }
+  .logo img {
+    width: 180px;
+  }
+}
+
