@@ -2,13 +2,11 @@
 <h1>Krízishelyzetben észlelt hajléktalan emberek bejelentése</h1>
 
 <div class="wrapper">
-  <!-- Left side: form -->
-  <div class="box">
+  <div class="box form-box">
     <app-report-form #form></app-report-form>
   </div>
 
-  <!-- Right side: map -->
-  <div class="box">
+  <div class="box map-box">
     <app-map (coordsChange)="form.setCoords($event.lat, $event.lng)"></app-map>
   </div>
 </div>

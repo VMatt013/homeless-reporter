@@ -69,6 +69,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   @ViewChild('mapEl', { static: true }) mapEl!: ElementRef<HTMLDivElement>;
   @Output() coordsChange = new EventEmitter<{ lat: number; lng: number }>();
 
+private io?: IntersectionObserver;
+
   private map!: L.Map;
   private selectedMarker: L.Marker | null = null;
   private markers: L.Marker[] = [];
@@ -86,6 +88,12 @@ constructor(private reports: ReportService, private bus: CoordsBus) {}
     // fix rendering on load
     setTimeout(() => this.map.invalidateSize(), 0);
 
+ this.io = new IntersectionObserver((entries) => {
+    if (entries.some(e => e.isIntersecting)) {
+      setTimeout(() => this.map.invalidateSize(), 0);
+    }
+  }, { threshold: 0.1 });
+  this.io.observe(this.mapEl.nativeElement);
 
 this.bus.coords$.subscribe(c => {
   if (!c) return;
@@ -109,11 +117,11 @@ this.bus.coords$.subscribe(c => {
     });
   }
 
-  ngOnDestroy() {
-    this.sub?.unsubscribe();
-    if (this.map) this.map.remove();
-  }
-
+ngOnDestroy() {
+  this.sub?.unsubscribe();
+  this.io?.disconnect();                // 👈 clean up
+  if (this.map) this.map.remove();
+}
   private ensureMarker() {
     if (!this.selectedMarker) {
       this.selectedMarker = L.marker([DEFAULT_LAT, DEFAULT_LNG], { draggable: true, icon: crimsonIcon }).addTo(this.map);

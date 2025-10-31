@@ -43,16 +43,10 @@ h1 {
   overflow: hidden;
 }
 
-/* On smaller screens, stack them */
+/* 📱 Mobile: stack and give the MAP a real height */
 @media (max-width: 900px) {
-  .wrapper {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .box {
-    width: 90%;
-    height: auto;
-  }
+  .wrapper { flex-direction: column; gap: 1.25rem; }
+  .box { width: 94%; }
+  .form-box { height: auto; }                  /* form can grow naturally */
+  .map-box  { height: 55vh; min-height: 340px; } /* map always visible */
 }
-
