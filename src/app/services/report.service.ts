@@ -1,27 +1,37 @@
 
-import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { Report } from '../models/report.model';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+
+export interface ReportData {
+  name: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  photo?: string | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ReportService {
-  private http = inject(HttpClient);
-  private apiUrl = '/.netlify/functions/send-report';
+  private readonly apiUrl = '/.netlify/functions/send-report'; // ✅ relative path
 
-  private _reports$ = new BehaviorSubject<Report[]>(this.load());
-  reports$ = this._reports$.asObservable();
+  constructor(private http: HttpClient) {}
 
-  async submit(report: Report) {
-    await this.http.post(this.apiUrl, report).toPromise();
-    const updated = [report, ...this._reports$.value];
-    this._reports$.next(updated);
-    this.save(updated);
-  }
-
-  private save(list: Report[]) { localStorage.setItem('reports', JSON.stringify(list)); }
-  private load(): Report[] {
-    try { return JSON.parse(localStorage.getItem('reports') || '[]'); }
-    catch { return []; }
+  async submit(data: ReportData): Promise<any> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post(this.apiUrl, data, { responseType: 'json' })
+      );
+      console.log('Report sent successfully:', response);
+      return response;
+    } catch (error: any) {
+      console.error('Error sending report:', error);
+      alert(
+        'Nem sikerült elküldeni a bejelentést.\n' +
+          (error?.error?.error || error?.message || 'Ismeretlen hiba.')
+      );
+      throw error;
+    }
   }
 }
+
