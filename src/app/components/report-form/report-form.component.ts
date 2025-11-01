@@ -17,9 +17,10 @@ import { CoordsBus } from '../../services/coords-bus.service';   // <-- add
 
       <!-- Static text above the form -->
       <p class="intro-text">
-       💔 Télen is alszanak hajléktalan emberek az utcán.
-🙏 Ha lát egy hajléktalan embert , aki fázik vagy segítségre szorul, ne menjen el mellette.
-🫂 Írja meg nekünk, és segítünk, amilyen gyorsan csak tudunk. ❤️
+        💔 Télen is alszanak hajléktalan emberek az utcán.<br>
+        🥶 A kihűlés (hipotermia) nem csak fagyos időben történik!<br>
+        🌡️ Már 10 fokos hűvösben is életveszélyes lehet ⚠️<br>
+        🙏 Ha lát egy hajléktalan embert , aki fázik vagy segítségre szorul, ne menjen el mellette. 🫂 Írja meg nekünk, és segítünk, amilyen gyorsan csak tudunk. ❤️
       </p>
 
       <form (ngSubmit)="onSubmit()" #f="ngForm" class="form-fields">
@@ -40,7 +41,7 @@ import { CoordsBus } from '../../services/coords-bus.service';   // <-- add
           accept="image/*"
           (change)="onFile($event)" />
 
-        <button type="button" (click)="useGeo()">Használja a jelenlegi helyzetemet</button>
+        <button type="button" (click)="useGeo()">Használja a jelenlegi helyzetemet!</button>
         <button type="submit" [disabled]="!f.valid || !lat() || !lng()">Bejelentés Küldése</button>
       </form>
     </div>
@@ -72,6 +73,7 @@ styles: [`
     color: #444;
     margin: .25rem 0 1rem 0;
     text-align: left;
+    white-space: pre-line;
   }
 
   /* Fields fill remaining height; scroll if overflow */
