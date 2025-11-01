@@ -115,7 +115,7 @@ this.sub = this.reports.reports$.subscribe((list: Report[]) => {
   // remove old markers
   this.markers.forEach(m => this.map.removeLayer(m));
   // add typed markers
-  this.markers = list.map((r: Report) => this.addReportMarker(r));
+  //this.markers = list.map((r: Report) => this.addReportMarker(r));
 });
 
   }
@@ -136,13 +136,6 @@ ngOnDestroy() {
   }
 
 
-private addReportMarker(r: Report) {
-  const url = `https://www.google.com/maps?q=${r.latitude},${r.longitude}`;
-  return L.marker([r.latitude, r.longitude], { icon: crimsonIcon })
-    .addTo(this.map)
-    .bindPopup(`<b>${r.name}</b><br>${r.description}<br>
-      <a href="${url}" target="_blank">Megnyitás térképen</a>`);
-}
 
 }
 
