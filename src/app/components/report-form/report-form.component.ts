@@ -17,10 +17,10 @@ import { CoordsBus } from '../../services/coords-bus.service';   // <-- add
 
       <!-- Static text above the form -->
       <p class="intro-text">
-        💔 Télen is alszanak hajléktalan emberek az utcán.<br>
-        🥶 A kihűlés (hipotermia) nem csak fagyos időben történik!<br>
-        🌡️ Már 10 fokos hűvösben is életveszélyes lehet ⚠️<br>
-        🙏 Ha lát egy hajléktalan embert , aki fázik vagy segítségre szorul, ne menjen el mellette. 🫂 Írja meg nekünk, és segítünk, amilyen gyorsan csak tudunk. ❤️
+        💔 Télen is éjszakáznak hajléktalan emberek az utcán.<br>
+        🥶 A kihűlés (hipotermia) nem csak fagyos időben történhet!<br>
+        🌡️ Már 10 fokos hűvösben is bekövetkezhet! ⚠️<br>
+        🙏 Ha lát egy hajléktalan embert , aki fázik vagy segítségre szorul, ne menjen el mellette!🫂 Írja meg nekünk, és segítünk, amilyen gyorsan csak tudunk. ❤️
       </p>
 
       <form (ngSubmit)="onSubmit()" #f="ngForm" class="form-fields">
