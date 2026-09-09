@@ -17,9 +17,8 @@ import { CoordsBus } from '../../services/coords-bus.service';   // <-- add
 
       <!-- Static text above the form -->
       <p class="intro-text">
-       Télen is vannak hajléktalan emberek, akik éjszakáikat közterületen töltik.<br>
-        A kihűlés nemcsak fagypont alatti hőmérsékleten fenyeget — már 10 Celsius-fok körüli hidegben is életveszélyes lehet.<br>
-        Ha hajléktalan embert lát az utcán, aki láthatóan ott tölti az éjszakát vagy segítségre szorulhat, kérjük, jelezze nekünk!<br>
+
+       Ha hajléktalan embert lát az utcán, aki láthatóan ott tölti az éjszakát vagy segítségre szorulhat, kérjük, jelezze nekünk!<br>
         Munkatársaink a lehető leghamarabb igyekeznek a helyszínre érni, és segítséget nyújtani.
       </p>
 
