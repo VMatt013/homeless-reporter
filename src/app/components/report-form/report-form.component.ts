@@ -18,7 +18,8 @@ import { CoordsBus } from '../../services/coords-bus.service';   // <-- add
       <!-- Static text above the form -->
       <p class="intro-text">
        Ha az utcán olyan hajléktalan embert lát, aki segítségre szorulhat, vagy az éjszakáját is közterületen tölti, kérjük, jelezze nekünk!<br>
-Munkatársaink a lehető leghamarabb a helyszínre érkeznek, és szükség esetén segítséget nyújtanak.
+Munkatársaink a lehető leghamarabb a helyszínre érkeznek, és szükség esetén segítséget nyújtanak.<br>
+Fontos, hogy munkatársaink segítséget és elhelyezési lehetőséget kínálnak fel, amelyet az érintett személy önkéntesen vehet igénybe; akarata ellenére senkit nem tudunk elhelyezni.
       </p>
 
       <form (ngSubmit)="onSubmit()" #f="ngForm" class="form-fields">
