@@ -17,9 +17,8 @@ import { CoordsBus } from '../../services/coords-bus.service';   // <-- add
 
       <!-- Static text above the form -->
       <p class="intro-text">
-
-       Ha hajléktalan embert lát az utcán, aki láthatóan ott tölti az éjszakát vagy segítségre szorulhat, kérjük, jelezze nekünk!<br>
-        Munkatársaink a lehető leghamarabb igyekeznek a helyszínre érni, és segítséget nyújtani.
+       Ha az utcán olyan hajléktalan embert lát, aki segítségre szorulhat, vagy az éjszakáját is közterületen tölti, kérjük, jelezze nekünk!<br>
+Munkatársaink a lehető leghamarabb a helyszínre érkeznek, és szükség esetén segítséget nyújtanak.
       </p>
 
       <form (ngSubmit)="onSubmit()" #f="ngForm" class="form-fields">
@@ -32,7 +31,7 @@ import { CoordsBus } from '../../services/coords-bus.service';   // <-- add
         <textarea
           name="description"
           [(ngModel)]="description"
-          placeholder="Ossza meg velünk hol észlelte pontosan a hajléktalan embert, és miben szorulhat segítségre."
+          placeholder="Kérjük, írja le, pontosan hol látta az embert, és milyen segítségre lehet szüksége."
           required></textarea>
 
         <input
